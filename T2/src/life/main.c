@@ -24,41 +24,6 @@ int num_boards;
 
 enum signals {LOOP, NOCELLS, NOTIME, SIGNAL, DEFAULT};
 
-void write_matrix(Board* board) {
-	char* board_name = malloc(strlen(board->name));
-	for (size_t i = 0; i < strlen(board->name); i++) {
-		board_name[i] = board->name[i];
-	}
-	printf("writing: %s, %s\n", board_name, board->name);
-	char* filename = strcat(board_name, "-matrix.txt");
-	FILE *matrix_file = fopen(filename, "w");
-	for (size_t i = 0; i < board->size; i++) {
-		for (size_t j = 0; j < board->size; j++) {
-			fprintf(matrix_file, board->matrix[i][j] == 0 ? "0" : "1");
-		}
-		fprintf(matrix_file, "\n");
-	}
-	free(board_name);
-}
-
-void read_matrix(Board* board){
-	char* board_name = malloc(strlen(board->name));
-	for (size_t i = 0; i < strlen(board->name); i++) {
-		board_name[i] = board->name[i];
-	}
-	printf("read_matrix: %s, %s\n", board_name, board->name);
-	char* filename = strcat(board_name, "-matrix.txt");
-	FILE *matrix_file = fopen(filename, "r");
-	int c;
-	printf("reading: %s, %s\n", filename, board->name);
-	if (matrix_file) {
-    while ((c = getc(matrix_file)) != EOF)
-        printf("%c", c);
-    fclose(matrix_file);
-	}
-	free(board_name);
-}
-
 void show(int **univ, int w, int h, int t, Board * board)
 {
 	//printf("\033[2J");
@@ -95,12 +60,10 @@ Board* find_board(Board* boards, int pid) {
 
 void write_exit(Board *board){
 	printf("write_exit %s\n", board->name);
-	char* board_name = malloc(strlen(board->name));
-	for (size_t i = 0; i < strlen(board->name); i++) {
-		board_name[i] = board->name[i];
-	}
+	char* board_name = malloc(strlen(board->name)+1);
+	strcpy(board_name, board->name);
 	char* filename = strcat(board_name, ".txt");
-	printf("%s, %s\n", filename, board->name);
+	printf("%s\n", filename);
 	FILE *board_file = fopen(filename, "w+");
 
 	if (board_file != NULL) {
@@ -125,8 +88,6 @@ void write_exit(Board *board){
 		}
 		fprintf(board_file, "%s,%d,%d,%s\n", board->name, board->end_time, board->alive_cells, str_reason);
 		printf("%s,%d,%d,%s\n", board->name, board->end_time, board->alive_cells, str_reason);
-		//show(board->matrix, board->size, board->size, board->end_time, board);
-		write_matrix(board);
 		fclose(board_file);
 	}
 }
@@ -152,8 +113,7 @@ void generate_report(Board *boards, int num_boards) {
 				while ((c = fgetc(input_file)) != EOF)
 	      	fputc(c, output_file);
 				fclose(input_file);
-				printf("finished: %s\n", filename);
-				//remove(filename);
+				remove(filename);
 			}
     }
     fclose(output_file);
@@ -448,9 +408,9 @@ int main(int argc, char const *argv[]) {
   printf("generating report\n");
   generate_report(boards, num_boards);
 
-  for (size_t i = 0; i < num_boards; i++) {
-    read_matrix(&boards[i]);
-  }
+  /*for (size_t i = 0; i < num_boards; i++) {
+    show(boards[i].matrix, boards[i].size, boards[i].size, t, &boards[i]);
+  }*/
 
   return 0;
 }
